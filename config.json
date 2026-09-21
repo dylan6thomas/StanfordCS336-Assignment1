@@ -1,0 +1,31 @@
+{
+  "steps": 10,
+  "model": {
+    "vocab_size": 1000,
+    "context_length": 128,
+    "d_model": 256,
+    "num_layers": 12,
+    "num_heads": 8,
+    "d_ff": 1024,
+    "rope_theta": 10000,
+    "device": "mps",
+    "batch_size": 64
+  },
+  "optimizer":{
+    "lr": 0.001,
+    "betas": [0.9, 0.999],
+    "eps": 1e-8,
+    "weight_decay": 0.01,
+    "max_norm": 2.0,
+    "a_max": 1e-3,
+    "a_min": 1e-4,
+    "t_warmup": 2,
+    "t_cosine": 10
+  },
+  "encoding":{
+    "vocab_path": "/Users/dylanthomas/Documents/StanfordCS336/StanfordCS336-Assignment1/data/vocab.json",
+    "merges_path": "/Users/dylanthomas/Documents/StanfordCS336/StanfordCS336-Assignment1/data/merges.json",
+    "encoded_data": "/Users/dylanthomas/Documents/StanfordCS336/StanfordCS336-Assignment1/data/owt_val.bin"
+  },
+  "save_path": "/Users/dylanthomas/Documents/StanfordCS336/StanfordCS336-Assignment1/models/model.pt"
+}

@@ -34,7 +34,7 @@ class Linear(nn.Module):
   def __init__(self, in_features, out_features, device=None, dtype=None):
     super().__init__()
 
-    std = torch.sqrt(torch.div(2, in_features+out_features))
+    std = torch.sqrt(torch.div(2, in_features+out_features)).to(device)
     weight = torch.empty((out_features, in_features), device=device, dtype=dtype)
 
     nn.init.trunc_normal_(weight, 0, std, -3*std, 3*std)
@@ -57,9 +57,7 @@ class Embedding(nn.Module):
     self.dtype = dtype or torch.float32
     
   def forward(self, token_ids: torch.Tensor) -> torch.Tensor:
-    tokens_one_hot = nn.functional.one_hot(token_ids, self.num_embeddings).to(self.dtype)
-
-    return torch.einsum('... j,jk -> ... k', tokens_one_hot, self.weight)
+    return self.weight[token_ids]
 
 class RMSNorm(nn.Module):
   def __init__(self, d_model: int, eps: float = 1e-5, device=None, dtype=None):
@@ -238,7 +236,7 @@ class TransformerLM(nn.Module):
 
     self.ln_final = RMSNorm(d_model, device=device)
 
-    self.lm_head = Linear(d_model, vocab_size)
+    self.lm_head = Linear(d_model, vocab_size, device)
 
   def forward(self, x: torch.Tensor) -> torch.Tensor:
 

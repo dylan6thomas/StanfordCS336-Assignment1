@@ -69,6 +69,13 @@ def get_chunk_pretokens(chunk, special_tokens):
 
   return pretoken_to_freq
 
+def process_chunk(input_path, start, end, special_tokens):
+    """Worker opens the file itself and reads only its slice."""
+    with open(input_path, "rb") as f:
+        f.seek(start)
+        chunk_text = f.read(end - start).decode("utf-8", errors="ignore")
+    return get_chunk_pretokens(chunk_text, special_tokens)
+
 def train_bpe(input_path: str, vocab_size: int, special_tokens: list[str]) -> tuple[dict[int, bytes], list[tuple[bytes, bytes]]]:
 
   vocab = {i: bytes([i]) for i in range(256)}
@@ -80,32 +87,28 @@ def train_bpe(input_path: str, vocab_size: int, special_tokens: list[str]) -> tu
   merges = []
 
   with open(input_path, "rb") as f:
-    num_processes = 4
+    num_processes = 2
     boundaries = find_chunk_boundaries(f, num_processes, b"<|endoftext|>")
 
-    # The following is a serial implementation, but you can parallelize this
-    # by sending each start/end pair to a set of processes.
-    chunks = []
-    for start, end in zip(boundaries[:-1], boundaries[1:]):
-      f.seek(start)
-      chunks.append(f.read(end - start).decode("utf-8", errors="ignore"))
-      # Run pre-tokenization on your chunk and store the counts for each pre-token
-    with multiprocessing.Pool() as pool:
-      # 1. Map: Run functions in parallel. Returns a list of dicts.
-      
-      list_of_dicts = pool.starmap(get_chunk_pretokens, [(chunk, special_tokens) for chunk in chunks])
+  # Build args WITHOUT reading any text — just the byte offsets
+  args = [
+      (input_path, start, end, special_tokens)
+      for start, end in zip(boundaries[:-1], boundaries[1:])
+  ]
 
-      # 2. Reduce: Pool/combine results by key using Counter
-      pretoken_to_freq = Counter()
-      for d in list_of_dicts:
+  pretoken_to_freq = Counter()
+  with multiprocessing.Pool(num_processes) as pool:
+      # imap streams results back one at a time instead of waiting for all of them
+      for d in pool.starmap(process_chunk, args):
           pretoken_to_freq.update(d)
-    
-    for pretoken in pretoken_to_freq.keys():
+
+  for pretoken in pretoken_to_freq.keys():
       sequence = [bytes([c]) for c in pretoken]
       pretoken_to_sequence[pretoken] = sequence
-      for i in range(len(sequence)-1):
-        pair_to_pretokens[(sequence[i],sequence[i+1])][pretoken] += 1
-    for pair, pretokens in pair_to_pretokens.items():
+      for i in range(len(sequence) - 1):
+          pair_to_pretokens[(sequence[i], sequence[i + 1])][pretoken] += 1
+
+  for pair, pretokens in pair_to_pretokens.items():
       for pretoken, count in pretokens.items():
           pair_counts[pair] += pretoken_to_freq[pretoken] * count
 

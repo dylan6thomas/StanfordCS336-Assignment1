@@ -4,6 +4,7 @@ import regex as re
 import json
 from collections import defaultdict
 import heapq
+from tests.common import gpt2_unicode_to_bytes
 
 PAT = r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
 
@@ -35,6 +36,7 @@ class Tokenizer:
 
     vocab = {}
     merges = []
+    unicode_to_bytes = gpt2_unicode_to_bytes()
 
     with open(vocab_filepath, "r") as f:
       str_vocab = json.load(f)
@@ -42,10 +44,12 @@ class Tokenizer:
       str_merges = json.load(f)
 
     for id, str_token in str_vocab.items():
-      vocab[id] = str_token.encode()
+      vocab[id] = bytes([unicode_to_bytes[c] for c in str_token])
     for str_merge in str_merges:
       s1, s2 = str_merge
-      merges.append((s1.encode(), s2.encode()))
+      b1 = bytes([unicode_to_bytes[c] for c in s1])
+      b2 = bytes([unicode_to_bytes[c] for c in s2])
+      merges.append((b1, b2))
 
     if special_tokens:
       for special_token in special_tokens:
