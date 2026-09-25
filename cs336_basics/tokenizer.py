@@ -44,7 +44,7 @@ class Tokenizer:
       str_merges = json.load(f)
 
     for id, str_token in str_vocab.items():
-      vocab[id] = bytes([unicode_to_bytes[c] for c in str_token])
+      vocab[int(id)] = bytes([unicode_to_bytes[c] for c in str_token])
     for str_merge in str_merges:
       s1, s2 = str_merge
       b1 = bytes([unicode_to_bytes[c] for c in s1])

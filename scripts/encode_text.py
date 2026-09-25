@@ -7,10 +7,10 @@ if __name__ == "__main__":
   root = "/Users/dylanthomas/Documents/StanfordCS336/StanfordCS336-Assignment1/data"
   vocab_path = os.path.join(root, "vocab.json")
   merges_path = os.path.join(root, "merges.json")
-  out_path = os.path.join(root, "owt_val.bin")
+  out_path = os.path.join(root, "TinyStoriesV2-GPT4-train.bin")
   tokenizer = Tokenizer.from_files(vocab_path, merges_path, ["<|endoftext|>"])
 
-  with open(os.path.join(root, "owt_valid.txt"), "r") as f:
+  with open(os.path.join(root, "TinyStoriesV2-GPT4-train.txt"), "r") as f:
     encodings = tokenizer.encode_iterable(f)
     batches = itertools.batched(encodings, 1000)
 

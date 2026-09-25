@@ -1,12 +1,14 @@
 {
-  "steps": 10,
+  "prompt": "Hello",
+  "load_path": "/Users/dylanthomas/Documents/StanfordCS336/StanfordCS336-Assignment1/models/model.pt",
+  "steps": 20000,
   "model": {
     "vocab_size": 1000,
-    "context_length": 128,
-    "d_model": 256,
-    "num_layers": 12,
-    "num_heads": 8,
-    "d_ff": 1024,
+    "context_length": 256,
+    "d_model": 512,
+    "num_layers": 4,
+    "num_heads": 16,
+    "d_ff": 1344,
     "rope_theta": 10000,
     "device": "mps",
     "batch_size": 64
